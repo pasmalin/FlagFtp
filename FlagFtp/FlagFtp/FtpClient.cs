@@ -285,7 +285,7 @@ namespace FlagFtp
 
             file = this.NormalizeUri(file);
 
-            var files = this.GetFiles(new Uri(file, ".."));
+            var files = this.GetFiles(this.ParentUri(file));
 
             return files.Any(f => this.NormalizeUri(f.Uri).AbsoluteUri == file.AbsoluteUri);
         }
@@ -307,7 +307,7 @@ namespace FlagFtp
 
             directory = this.NormalizeUri(directory);
 
-            var directories = this.GetDirectories(new Uri(directory, ".."));
+            var directories = this.GetDirectories(this.ParentUri(directory));
 
             return directories.Any(dir => this.NormalizeUri(dir.Uri).AbsoluteUri == directory.AbsoluteUri);
         }
@@ -336,7 +336,7 @@ namespace FlagFtp
                     {
                         string all = reader.ReadToEnd();
 
-                        var regex = new Regex(@"^(?<FileOrDirectory>[d-])(?<Attributes>[rwxt-]{3}){3}\s+\d{1,}\s+.*?(?<FileSize>\d{1,})\s+(?<Date>\w+\s+\d{1,2}\s+(?:\d{4})?)(?<YearOrTime>\d{1,2}:\d{2})?\s+(?<Name>.+?)\s?$",
+                        var regex = new Regex(@"^(?<FileOrDirectory>[d-])(?<Attributes>[rwxst-]{3}){3}\s+\d{1,}\s+.*?(?<FileSize>\d{1,})\s+(?<Date>\w+\s+\d{1,2}\s+(?:\d{4})?)(?<YearOrTime>\d{1,2}:\d{2})?\s+(?<Name>.+?)\s?$",
                             RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
 
                         MatchCollection matches = regex.Matches(all);
@@ -499,6 +499,17 @@ namespace FlagFtp
             path = path.Replace("//", "/").Replace(@"\\", "/").Replace(@"\", "/");
 
             return new Uri("ftp://" + path);
+        }
+        /// <summary>
+        ///  give the URI Parent
+        /// </summary>
+        /// <example>http://toto.com/titi => http://toto.com</example>
+        /// <remarks>Uri parent = new Uri(uri, ".."); dont work correctly </remarks>
+        /// <param name="uri">the URI</param>
+        /// <returns></returns>
+        private Uri ParentUri(Uri uri) 
+        {
+            return new Uri(uri.AbsoluteUri.Remove(uri.AbsoluteUri.Length - uri.Segments.Last().Length));
         }
     }
 }
